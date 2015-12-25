@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# sysctl vfs.usermount=1
+# pkg install -y pefs-kmod
+# kldload pefs
+
+BACKINGDIR=$1
+MOUNTPOINT=$2
+
+if [ "x" = "x$BACKINGDIR" ] || [ "x" = "x$MOUNTPOINT" ]; then
+    echo "Usage: ${0##*/} backing_dir mountpoint"
+    exit 1
+fi
+
+if [ ! -e $BACKINGDIR/.pefs.db ]; then
+    pefs addchain -f -Z $BACKINGDIR
+fi
+
+if ! mount | grep $MOUNTPOINT >/dev/null 2>&1 ; then
+    pefs mount $BACKINGDIR $MOUNTPOINT
+fi
+
+pefs addkey -c $MOUNTPOINT
